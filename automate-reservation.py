@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium import webdriver
 from pathlib import Path
+from configparser import ConfigParser
 import time
 
 # Launching reservation website
@@ -23,8 +24,11 @@ online_booking_radio_button = driver.find_element(
 online_booking_radio_button.click()
 
 # Log on using credentials
-username = "Ig10587-0"
-password = "br1271@sn"
+config = ConfigParser()
+config.read("etc/config.txt")
+credentials = config['credentials']
+username = credentials.get('username')
+password = credentials.get('password')
 
 membership_no_input = driver.find_element(by=By.ID, value="cpMain_txtUserName")
 membership_no_input.send_keys(username)
