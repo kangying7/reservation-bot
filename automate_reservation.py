@@ -13,8 +13,9 @@ import time
 import re
 from datetime import datetime
 from custom_logger import CustomLogger
+from test_day_function import dayOnNextWeek
 
-def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger):
+def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
     start_time = datetime.now()
 
     # Launching reservation website
@@ -62,6 +63,11 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger):
     all_tee_off_date_range = len(Select(driver.find_element(by=By.ID, value="cpMain_cboDate")).options)
     all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
 
+    print("Selecting date for next: ", raw_day_of_the_week)
+    day_to_book = dayOnNextWeek()
+    all_tee_off_date_select.select_by_value()
+
+    time.sleep(100)
     # TODO: Create a function which returns driver if there exists an available tee time matching our criteria
     
     for index in range(all_tee_off_date_range):
@@ -127,7 +133,7 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger):
 
 def driver(raw_target_time:str, raw_day_of_the_week:str, allow_booking):
     logger = CustomLogger(f"{raw_day_of_the_week}.log")
-    main(raw_target_time, allow_booking, logger)
+    main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
 
 if __name__ == "__main__":
     driver("07:30", "Monday", False)
