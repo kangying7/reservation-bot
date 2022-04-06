@@ -5,6 +5,9 @@ from selenium.webdriver.support.select import Select
 from selenium import webdriver
 from pathlib import Path
 from configparser import ConfigParser
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
 import time
 
 # Launching reservation website
@@ -60,8 +63,17 @@ for index in range(all_tee_off_date_range):
     print("Currently selected date", selected_option_value)
 
     # Select only Morning session
-    session_select = Select(driver.find_element(by=By.ID, value="cpMain_cboSession"))
-    session_select.select_by_value("Morning")
+    # TODO: handle checks if there are no Morning sessions
+    try:
+        session_select = Select(WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
+        ))
+        session_select.select_by_value("Morning")
+    except NoSuchElementException as e:
+        print(f"No morning sessions are found for {selected_option_value} -  \n{e}")
+    
+    # session_select = Select(driver.find_element(by=By.ID, value="cpMain_cboSession"))
+    # session_select.select_by_value("Morning")
 
     # Select only tee time where it is earlier than 7.30am
     tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
