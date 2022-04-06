@@ -1,5 +1,6 @@
-from calendar import FRIDAY, MONDAY, SATURDAY, THURSDAY, TUESDAY, WEDNESDAY, SUNDAY
+from calendar import FRIDAY, MONDAY, SATURDAY, THURSDAY, TUESDAY, WEDNESDAY, SUNDAY, calendar, day_name
 import datetime
+
 
 onDay = lambda date, day: date + datetime.timedelta(days=(day-date.weekday())%7)
 
@@ -25,5 +26,4 @@ print("Next Friday is", dayOnNextWeek(FRIDAY))
 print("Next Saturday is", dayOnNextWeek(SATURDAY))
 print("Next Sunday is", dayOnNextWeek(SUNDAY))
 
-# six_april = datetime.datetime.strptime("09/Apr/2022", "%d/%b/%Y")
-# print(f"six_april is {six_april}")
+print(f"six_april is {day_name[TUESDAY]}")

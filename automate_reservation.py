@@ -1,4 +1,5 @@
 # from lib2to3.pgen2 import driver
+from calendar import TUESDAY, Calendar, calendar, day_name
 from xmlrpc.client import boolean
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -63,77 +64,76 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     all_tee_off_date_range = len(Select(driver.find_element(by=By.ID, value="cpMain_cboDate")).options)
     all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
 
-    print("Selecting date for next: ", raw_day_of_the_week)
-    day_to_book = dayOnNextWeek()
-    all_tee_off_date_select.select_by_value()
+    # Select date for reservation
+    logger.add_to_log(f"Selecting date for next: {raw_day_of_the_week}")
+    day_to_book = dayOnNextWeek(raw_day_of_the_week)
+    logger.add_to_log(f"Day to do reservation - {day_to_book}")
+    all_tee_off_date_select.select_by_value(day_to_book)
 
-    time.sleep(100)
     # TODO: Create a function which returns driver if there exists an available tee time matching our criteria
-    
-    for index in range(all_tee_off_date_range):
-        # Select by index
-        all_tee_off_date_select.select_by_index(index)
+       
+    # Relocate element after selecting
+    all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
+    selected_tee_off_date = all_tee_off_date_select.first_selected_option.get_attribute("value")
+    logger.add_to_log(f"Currently selected date {selected_tee_off_date}")
 
-        # Relocate element after selecting
-        all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
-        selected_tee_off_date = all_tee_off_date_select.first_selected_option.get_attribute("value")
-        logger.add_to_log(f"Currently selected date {selected_tee_off_date}")
+    # Select only Morning session
+    try:
+        session_select = Select(WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
+        ))
+        session_select.select_by_value("Morning")
+    except NoSuchElementException as e:
+        logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
 
-        # Select only Morning session
-        try:
-            session_select = Select(WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
-            ))
-            session_select.select_by_value("Morning")
-        except NoSuchElementException as e:
-            logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
-        
-        # Select only tee time where it is earlier than 7.30am
-        tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
-        for tee_time in tee_time_select.options:
-            logger.add_to_log(f"Available tee time at {selected_tee_off_date}: {tee_time.get_attribute('text')}")
+    # Select only tee time where it is earlier than 7.30am
+    tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
+    for tee_time in tee_time_select.options:
+        logger.add_to_log(f"Available tee time at {selected_tee_off_date}: {tee_time.get_attribute('text')}")
 
-            # Retrieve date_time value from element value - 08:13 AM#@#10
-            matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
-            selected_tee_time: datetime = datetime.strptime(matched_date_time, "%H:%M")
-            target_time: datetime = datetime.strptime(raw_target_time, "%H:%M")
+        # Retrieve date_time value from element value - 08:13 AM#@#10
+        matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
+        selected_tee_time: datetime = datetime.strptime(matched_date_time, "%H:%M")
+        target_time: datetime = datetime.strptime(raw_target_time, "%H:%M")
 
-            # Compare if selected tee time is earlier than target time
-            is_available_tee_time: bool = selected_tee_time <= target_time
-            logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
+        # Compare if selected tee time is earlier than target time
+        is_available_tee_time: bool = selected_tee_time <= target_time
+        logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
 
-            # Start booking
-            if is_available_tee_time:
-                next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
-                next_button.click()   
+        # Start booking
+        if is_available_tee_time:
+            next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
+            next_button.click()   
 
-                # Confirm booking page 
-                next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
-                next_button.click()   
+            # Confirm booking page 
+            next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
+            next_button.click()   
 
-                # Confirm terms and condition - cpMain_chkTerm
-                tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
-                tnc_checkbox.click()   
+            # Confirm terms and condition
+            tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
+            tnc_checkbox.click()   
 
-                # Confirm booking button
-                confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
-                if allow_booking:
-                    confirm_button.click()
+            # Confirm booking button
+            confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
+            if allow_booking:
+                confirm_button.click()
 
-                logger.add_to_log(f"Time taken to complete - {datetime.now() -  start_time}") 
-
-                driver.close()
+            logger.add_to_log(f"Time taken to complete - {datetime.now() -  start_time}") 
+            
+            time.sleep(100)
+            break
+            # driver.close()
 
     # Close window if no available time is availabe
-    driver.close()
+    # driver.close()
 
     # Close original window
     # driver._switch_to.window(original_window)
     # driver.close()
 
-def driver(raw_target_time:str, raw_day_of_the_week:str, allow_booking):
-    logger = CustomLogger(f"{raw_day_of_the_week}.log")
+def driver(raw_target_time:str, raw_day_of_the_week, allow_booking):
+    logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
     main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
 
 if __name__ == "__main__":
-    driver("07:30", "Monday", False)
+    driver("08:40", TUESDAY, False)
