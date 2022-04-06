@@ -121,10 +121,10 @@ def main(raw_target_time:str, allow_booking:bool=False):
     driver.close()
 
     # Close original window
-    # driver._switch_to.window(original_window)
+    driver._switch_to.window(original_window)
     # driver.close()
-    print("Hello")
-    time.sleep(100)
+    # print("Hello")
+    # time.sleep(100)
 
 if __name__ == "__main__":
     main("07:30", False)
