@@ -5,7 +5,8 @@ import datetime
 onDay = lambda date, day: date + datetime.timedelta(days=(day-date.weekday())%7)
 
 def dayOnNextWeek(target_day: datetime.datetime.day):
-    diff_in_days_to_next_monday = datetime.timedelta(days=(MONDAY-datetime.datetime.today().weekday())%7)
+    today = datetime.datetime.today()
+    diff_in_days_to_next_monday = datetime.timedelta(days=(MONDAY-today.weekday())%7)
     # print("Difference in days are", diff_in_days)
     next_monday_date = today + diff_in_days_to_next_monday
 
@@ -15,15 +16,16 @@ def dayOnNextWeek(target_day: datetime.datetime.day):
 
 # print(onDay(datetime, ))
 
-today = datetime.datetime.today()
-print("Today is", today.date())
+if __name__ == "__main__":
+    today = datetime.datetime.today()
+    print("Today is", today.date())
 
-print("Next Monday is", dayOnNextWeek(MONDAY))
-print("Next Tuesday is", dayOnNextWeek(TUESDAY))
-print("Next Wednesdaay is", dayOnNextWeek(WEDNESDAY))
-print("Next Thursday is", dayOnNextWeek(THURSDAY))
-print("Next Friday is", dayOnNextWeek(FRIDAY))
-print("Next Saturday is", dayOnNextWeek(SATURDAY))
-print("Next Sunday is", dayOnNextWeek(SUNDAY))
+    print("Next Monday is", dayOnNextWeek(MONDAY))
+    print("Next Tuesday is", dayOnNextWeek(TUESDAY))
+    print("Next Wednesdaay is", dayOnNextWeek(WEDNESDAY))
+    print("Next Thursday is", dayOnNextWeek(THURSDAY))
+    print("Next Friday is", dayOnNextWeek(FRIDAY))
+    print("Next Saturday is", dayOnNextWeek(SATURDAY))
+    print("Next Sunday is", dayOnNextWeek(SUNDAY))
 
-print(f"six_april is {day_name[TUESDAY]}")
+    print(f"six_april is {day_name[TUESDAY]}")

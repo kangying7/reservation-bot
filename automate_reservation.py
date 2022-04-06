@@ -15,6 +15,7 @@ import re
 from datetime import datetime
 from custom_logger import CustomLogger
 from test_day_function import dayOnNextWeek
+import argparse
 
 def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
     start_time = datetime.now()
@@ -116,11 +117,12 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
             # Confirm booking button
             confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
             if allow_booking:
-                confirm_button.click()
+                # confirm_button.click()
+                pass
 
             logger.add_to_log(f"Time taken to complete - {datetime.now() -  start_time}") 
             
-            time.sleep(100)
+            # time.sleep(100)
             break
             # driver.close()
 
@@ -136,4 +138,19 @@ def driver(raw_target_time:str, raw_day_of_the_week, allow_booking):
     main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
 
 if __name__ == "__main__":
-    driver("08:40", TUESDAY, False)
+    # driver("08:40", TUESDAY, False)
+    parser = argparse.ArgumentParser(description='Automate reservation')
+    parser.add_argument('--time', help='reservation time')
+    parser.add_argument('--day', help='day of the week')
+    parser.add_argument('--booking', help='enable booking', action="store_true")
+    args = parser.parse_args()
+
+    allow_booking = True if args.booking else False
+    raw_target_time = args.time
+    raw_day_of_the_week = int(args.day)
+    print(allow_booking, raw_target_time, raw_day_of_the_week)
+
+    driver(raw_target_time, raw_day_of_the_week, allow_booking)
+
+
+
