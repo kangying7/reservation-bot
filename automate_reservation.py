@@ -5,6 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from pathlib import Path
 from configparser import ConfigParser
 from selenium.webdriver.support.ui import WebDriverWait
@@ -24,7 +25,9 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
     website_link = "https://www.kotapermaionline.com.my/"
 
-    driver = webdriver.Chrome(chrome_driver_path)
+    options = Options()
+    options.headless = True
+    driver = webdriver.Chrome(chrome_driver_path, options=options)
     driver.get(website_link)
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
