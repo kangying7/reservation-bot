@@ -6,7 +6,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from pathlib import Path
 from configparser import ConfigParser
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,6 +18,9 @@ from custom_logger import CustomLogger
 from test_day_function import dayOnNextWeek
 import argparse
 from timeit import default_timer as timer
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
 
@@ -28,7 +30,8 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
 
     options = Options()
     options.headless = True
-    driver = webdriver.Chrome(chrome_driver_path, options=options)
+    # driver = webdriver.Chrome(chrome_driver_path, options=options)
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(website_link)
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
@@ -132,7 +135,7 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     # driver._switch_to.window(original_window)
     # driver.close()
 
-def driver(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path):
+def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path):
     output_folder = log_output_path
     logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
@@ -161,7 +164,7 @@ if __name__ == "__main__":
     raw_day_of_the_week = int(args.day)
     print(allow_booking, raw_target_time, raw_day_of_the_week)
 
-    driver(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path)
+    driver_program(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path)
 
 
 
