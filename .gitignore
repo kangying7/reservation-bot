@@ -1,4 +1,5 @@
 myenv
-bin
+bin/
 etc
-output
+output/
+__pycache__/
