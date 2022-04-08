@@ -1,7 +1,10 @@
 import asyncio
 from calendar import FRIDAY, MONDAY, THURSDAY, TUESDAY, WEDNESDAY
+from custom_logger import CustomLogger
+from pathlib import Path
+import datetime
 
-async def run(cmd):
+async def run(cmd, logger: CustomLogger):
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
@@ -9,19 +12,27 @@ async def run(cmd):
 
     stdout, stderr = await proc.communicate()
 
-    print(f'[{cmd!r} exited with {proc.returncode}]')
+    logger.add_to_log(f'[{cmd!r} exited with {proc.returncode}]')
     if stdout:
-        print(f'[stdout]\n{stdout.decode()}')
+        logger.add_to_log(f'[stdout]\n{stdout.decode()}')
     if stderr:
-        print(f'[stderr]\n{stderr.decode()}')
+        logger.add_to_log(f'[stderr]\n{stderr.decode()}')
 
 async def main():
+    # logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
+
     time = "07:30"
-    coros = [run(f'python ./automate_reservation.py --time {time} --day {weekday}') for weekday in [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
+    # Create output folder if it does not exist
+    log_output_path = Path.cwd() / 'output'
+    Path(log_output_path).mkdir(parents=True, exist_ok=True)
+
+    # Create log folder with timestamp
+    session_log_path = log_output_path / f'session_{datetime.datetime.now().strftime("%b_%d_%H%M_%S")}'
+    Path(session_log_path).mkdir()
+    logger = CustomLogger(session_log_path, "session_details.log")
+
+    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', logger) for weekday in [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
     await asyncio.gather(*coros)
-    # await asyncio.gather(
-    #     run('python ./automate_reservation.py --time "08:40" --day 1'),
-    #     run('python ./automate_reservation.py --time "08:40" --day 2'))
 
 if __name__ == "__main__":
     asyncio.run(main())

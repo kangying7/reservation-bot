@@ -71,7 +71,7 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
 
     # Select date for reservation
     day_to_book = dayOnNextWeek(raw_day_of_the_week)
-    logger.add_to_log(f"Day to do reservation - {day_to_book}")
+    logger.add_to_log(f"Making reservation for - {day_to_book}")
     all_tee_off_date_select.select_by_value(day_to_book)
 
     # TODO: Create a function which returns driver if there exists an available tee time matching our criteria
@@ -93,14 +93,15 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     # Select only tee time where it is earlier than 7.30am
     tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
     for tee_time in tee_time_select.options:
-        logger.add_to_log(f"Available tee time at {selected_tee_off_date}: {tee_time.get_attribute('text')}")
+        # logger.add_to_log(f"Available tee time: {tee_time.get_attribute('text')}")
 
         # Retrieve date_time value from element value - 08:13 AM#@#10
         matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
-        selected_tee_time: datetime = datetime.strptime(matched_date_time, "%H:%M")
-        target_time: datetime = datetime.strptime(raw_target_time, "%H:%M")
+        selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M").time()
+        target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M").time()
 
         # Compare if selected tee time is earlier than target time
+
         is_available_tee_time: bool = selected_tee_time <= target_time
         logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
 
@@ -131,8 +132,9 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     # driver._switch_to.window(original_window)
     # driver.close()
 
-def driver(raw_target_time:str, raw_day_of_the_week, allow_booking):
-    logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
+def driver(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path):
+    output_folder = log_output_path
+    logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
     logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
     logger.add_to_log("================================")
@@ -146,17 +148,20 @@ def driver(raw_target_time:str, raw_day_of_the_week, allow_booking):
 if __name__ == "__main__":
     # driver("08:40", TUESDAY, False)
     parser = argparse.ArgumentParser(description='Automate reservation')
-    parser.add_argument('--time', help='reservation time')
-    parser.add_argument('--day', help='day of the week')
+    parser.add_argument('--time', help='reservation time', required=True)
+    parser.add_argument('--day', help='day of the week', required=True)
+    parser.add_argument('--log', help='log output path')
     parser.add_argument('--booking', help='enable booking', action="store_true")
+
     args = parser.parse_args()
 
     allow_booking = True if args.booking else False
+    log_output_path = args.log
     raw_target_time = args.time
     raw_day_of_the_week = int(args.day)
     print(allow_booking, raw_target_time, raw_day_of_the_week)
 
-    driver(raw_target_time, raw_day_of_the_week, allow_booking)
+    driver(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path)
 
 
 
