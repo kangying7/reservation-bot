@@ -2,3 +2,4 @@ myenv
 bin
 etc
 output
+__pycache__

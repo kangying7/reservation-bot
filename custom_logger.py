@@ -7,7 +7,7 @@ class CustomLogger:
         Path(output_folder).mkdir(parents=True, exist_ok=True)
 
         self.filename = output_folder / filename
-        self.add_to_log("================================")
+        # self.add_to_log("================================")
 
     def add_to_log(self, text):
         with open(self.filename, "a") as myfile:

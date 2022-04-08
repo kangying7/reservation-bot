@@ -1,5 +1,6 @@
 # from lib2to3.pgen2 import driver
 from calendar import TUESDAY, Calendar, calendar, day_name
+import numbers
 from xmlrpc.client import boolean
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -17,9 +18,9 @@ from datetime import datetime
 from custom_logger import CustomLogger
 from test_day_function import dayOnNextWeek
 import argparse
+from timeit import default_timer as timer
 
 def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
-    start_time = datetime.now()
 
     # Launching reservation website
     chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
@@ -69,7 +70,6 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
 
     # Select date for reservation
-    logger.add_to_log(f"Selecting date for next: {raw_day_of_the_week}")
     day_to_book = dayOnNextWeek(raw_day_of_the_week)
     logger.add_to_log(f"Day to do reservation - {day_to_book}")
     all_tee_off_date_select.select_by_value(day_to_book)
@@ -123,11 +123,6 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
                 # confirm_button.click()
                 pass
 
-            logger.add_to_log(f"Time taken to complete - {datetime.now() -  start_time}") 
-            
-            # time.sleep(100)
-            break
-            # driver.close()
 
     # Close window if no available time is availabe
     # driver.close()
@@ -138,7 +133,15 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
 
 def driver(raw_target_time:str, raw_day_of_the_week, allow_booking):
     logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
+    logger.add_to_log("================================")
+    logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
+    logger.add_to_log("================================")
+
+    start_time = timer()
     main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
+    time_taken_to_complete = timer() - start_time
+    logger.add_to_log(f"Time taken to complete - {round(time_taken_to_complete, 2)}s") 
+    
 
 if __name__ == "__main__":
     # driver("08:40", TUESDAY, False)
