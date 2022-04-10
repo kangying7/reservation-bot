@@ -3,6 +3,7 @@ from calendar import FRIDAY, MONDAY, THURSDAY, TUESDAY, WEDNESDAY
 from custom_logger import CustomLogger
 from pathlib import Path
 import datetime
+from timeit import default_timer as timer
 
 async def run(cmd, logger: CustomLogger):
     proc = await asyncio.create_subprocess_shell(
@@ -29,10 +30,16 @@ async def main():
     # Create log folder with timestamp
     session_log_path = log_output_path / f'session_{datetime.datetime.now().strftime("%b_%d_%H%M_%S")}'
     Path(session_log_path).mkdir()
-    logger = CustomLogger(session_log_path, "session_details.log")
-
-    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', logger) for weekday in [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
+    session_logger = CustomLogger(session_log_path, "session_details.log")
+    start_time = datetime.datetime.now()
+   
+    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
+    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [THURSDAY]]
+    
     await asyncio.gather(*coros)
+    end_time = datetime.datetime.now()
+    time_taken_to_complete = end_time - start_time
+    session_logger.add_to_log(f"Session started at {start_time} and ended at {end_time}, taking {time_taken_to_complete}s to complete")
 
 if __name__ == "__main__":
     asyncio.run(main())

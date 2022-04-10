@@ -23,6 +23,11 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
+    # Timer
+    start_time_main = timer()
+
+    # Timer
+    start_time_chrome = timer()
 
     # Launching reservation website
     chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
@@ -36,6 +41,10 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
     print(driver.title)
+
+    # Timer
+    logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
+    start_time_login_page = timer()
 
     # Proceed to Login page
     online_booking_radio_button = driver.find_element(
@@ -58,9 +67,17 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     logon_button = driver.find_element(by=By.ID, value="cpMain_btnLogin")
     logon_button.click()
 
+    # Timer
+    logger.add_to_log(f"Time taken to log onto website - {timer() - start_time_login_page}s") 
+    start_time_booking = timer()
+
     # Start booking
     click_here_button = driver.find_element(by=By.CLASS_NAME, value="btn-success")
     click_here_button.click()
+
+    # Timer
+    logger.add_to_log(f"Time taken to start booking - {timer() - start_time_booking}s") 
+    start_time_booking_window = timer()
 
     # Switch to new Booking Window
     original_window = driver.current_window_handle
@@ -127,6 +144,9 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
                 # confirm_button.click()
                 pass
 
+    logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
+
+    # logger.add_to_log(f"Time taken to complete main - {timer() - start_time_main}s") 
 
     # Close window if no available time is availabe
     # driver.close()
