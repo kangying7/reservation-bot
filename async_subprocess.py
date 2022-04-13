@@ -33,8 +33,8 @@ async def main():
     session_logger = CustomLogger(session_log_path, "session_details.log")
     start_time = datetime.datetime.now()
    
-    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [THURSDAY]]
+    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
+    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [THURSDAY]]
     
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()
