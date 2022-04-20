@@ -161,6 +161,7 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     logger.add_to_log("================================")
     logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
     logger.add_to_log("================================")
+    logger.add_to_log(f"Current time is {datetime.now().strftime('%b %d %H:%M %S %f')}")
 
     start_time = timer()
     main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
