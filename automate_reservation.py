@@ -136,13 +136,22 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
             next_button.click()   
 
             # Confirm terms and condition
-            tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
+            try:
+                tnc_checkbox = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
+                )
+                session_select.select_by_value("Morning")
+            except NoSuchElementException as e:
+                logger.add_to_log(f"No checkbox are found!")
+            # tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
             tnc_checkbox.click()   
 
             # Confirm booking button
             confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
             if allow_booking:
-                confirm_button.click()
+                # confirm_button.click()
+                logger.add_to_log(f"Success!")
+
                 pass
 
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
