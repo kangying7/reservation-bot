@@ -32,21 +32,13 @@ class RepeatedTimer(object):
 def run_all_schedule():
     subprocess.run(f"python async_subprocess.py")
 
-def printit():
-    threading.Timer(1.0, printit).start()
-    print(f"Hello at {datetime.datetime.now()}")
-    subprocess.run(f"python async_subprocess.py")
-
-def hello():
-    print(f"Hello at {datetime.datetime.now()}")
-
 def main():
-    # printit()
+    run_time: int = 30
     rt = RepeatedTimer(1, run_all_schedule)
     try:
-        sleep(30) # your long-running job goes here...
+        sleep(run_time) 
     finally:
-        rt.stop() # better in a try/finally block to make sure the program ends!
+        rt.stop()
 
 if __name__ == "__main__":
     main()

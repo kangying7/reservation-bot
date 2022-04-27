@@ -24,13 +24,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
     # Timer
-    start_time_main = timer()
+    # start_time_main = timer()
 
     # Timer
     start_time_chrome = timer()
 
     # Launching reservation website
-    chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
+    # chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
     website_link = "https://www.kotapermaionline.com.my/"
 
     options = Options()
@@ -44,6 +44,7 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
 
     # Timer
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
+    logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
     # Proceed to Login page

@@ -28,7 +28,7 @@ async def main():
     Path(log_output_path).mkdir(parents=True, exist_ok=True)
 
     # Create log folder with timestamp
-    session_log_path = log_output_path / f'session_{datetime.datetime.now().strftime("%b_%d_%H%M_%S")}'
+    session_log_path = log_output_path / f'session_{datetime.datetime.now().strftime("%b_%d_%H%M_%S_%f")}'
     Path(session_log_path).mkdir()
     session_logger = CustomLogger(session_log_path, "session_details.log")
     start_time = datetime.datetime.now()
