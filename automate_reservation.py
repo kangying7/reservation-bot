@@ -16,6 +16,7 @@ import re
 from datetime import datetime
 from custom_logger import CustomLogger
 from test_day_function import dayOnNextWeek
+from test_day_function import dayOnThisWeek
 import argparse
 from timeit import default_timer as timer
 from selenium.webdriver.chrome.options import Options
@@ -87,11 +88,11 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
         driver.switch_to.window(handle)
 
     # Find all Tee Off Date
-    all_tee_off_date_range = len(Select(driver.find_element(by=By.ID, value="cpMain_cboDate")).options)
     all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
 
     # Select date for reservation
     day_to_book = dayOnNextWeek(raw_day_of_the_week)
+    # day_to_book = dayOnThisWeek(raw_day_of_the_week)
     logger.add_to_log(f"Making reservation for - {day_to_book}")
     all_tee_off_date_select.select_by_value(day_to_book)
 
@@ -140,7 +141,7 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
                 tnc_checkbox = WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
                 )
-                session_select.select_by_value("Morning")
+                logger.add_to_log(f"Found checkbox")
             except NoSuchElementException as e:
                 logger.add_to_log(f"No checkbox are found!")
             # tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
@@ -149,9 +150,8 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
             # Confirm booking button
             confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
             if allow_booking:
-                # confirm_button.click()
+                confirm_button.click()
                 logger.add_to_log(f"Success!")
-
                 pass
 
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
