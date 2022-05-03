@@ -1,6 +1,6 @@
 import asyncio
 from calendar import FRIDAY, MONDAY, THURSDAY, TUESDAY, WEDNESDAY
-from custom_logger import CustomLogger
+from lib.custom_logger import CustomLogger
 from pathlib import Path
 import datetime
 from timeit import default_timer as timer
@@ -22,7 +22,7 @@ async def run(cmd, logger: CustomLogger):
 async def main():
     # logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
 
-    time = "12:30"
+    time = "7:30"
     # Create output folder if it does not exist
     log_output_path = Path.cwd() / 'output'
     Path(log_output_path).mkdir(parents=True, exist_ok=True)

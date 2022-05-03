@@ -14,9 +14,9 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 import re
 from datetime import datetime
-from custom_logger import CustomLogger
-from test_day_function import dayOnNextWeek
-from test_day_function import dayOnThisWeek
+from lib.custom_logger import CustomLogger
+from lib.test_day_function import dayOnNextWeek
+from lib.test_day_function import dayOnThisWeek
 import argparse
 from timeit import default_timer as timer
 from selenium.webdriver.chrome.options import Options
