@@ -22,7 +22,7 @@ async def run(cmd, logger: CustomLogger):
 async def main():
     # logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
 
-    time = "07:30"
+    time = "12:30"
     # Create output folder if it does not exist
     log_output_path = Path.cwd() / 'output'
     Path(log_output_path).mkdir(parents=True, exist_ok=True)
@@ -34,7 +34,7 @@ async def main():
     start_time = datetime.datetime.now()
    
     coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday}', session_logger) for weekday in [THURSDAY]]
+    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [FRIDAY]]
     
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()

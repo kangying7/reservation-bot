@@ -14,6 +14,16 @@ def dayOnNextWeek(target_day: datetime.datetime.day):
     next_week_date = next_monday_date + datetime.timedelta(days=target_day)
     return next_week_date.strftime("%d/%b/%Y")
 
+def dayOnThisWeek(target_day: datetime.datetime.day):
+    today = datetime.datetime.today()
+    diff_in_days_to_this_monday = datetime.timedelta(days=(today.weekday()-MONDAY)%7)
+    # print("Difference in days are", diff_in_days)
+    this_monday_date = today - diff_in_days_to_this_monday
+
+    # print("Target day is", target_day)
+    this_week_date = this_monday_date + datetime.timedelta(days=target_day)
+    return this_week_date.strftime("%d/%b/%Y")
+
 # print(onDay(datetime, ))
 
 if __name__ == "__main__":
