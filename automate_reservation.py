@@ -22,6 +22,7 @@ from timeit import default_timer as timer
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import traceback
 
 def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
@@ -102,8 +103,9 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
             EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
         ))
         session_select.select_by_value("Morning")
-    except NoSuchElementException as e:
+    except Exception as e:
         logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
+        raise e
 
     # Select only tee time where it is earlier than 7.30am
     tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
@@ -135,8 +137,9 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
                     EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
                 )
                 logger.add_to_log(f"Found checkbox")
-            except NoSuchElementException as e:
+            except Exception as e:
                 logger.add_to_log(f"No checkbox are found!")
+                raise e
             # tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
             tnc_checkbox.click()   
 
@@ -162,8 +165,8 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
     try:
         main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week)
-    except:
-        print("Issue here")
+    except Exception as e:
+        traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
         webdriver.save_screenshot(str(screenshot_file_path))
         
