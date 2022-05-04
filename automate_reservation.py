@@ -23,35 +23,28 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
-def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
-    # Timer
-    # start_time_main = timer()
-
-    # Timer
+def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
-
-    # Launching reservation website
-    # chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
-    website_link = "https://www.kotapermaionline.com.my/"
+    website_link = website_link
 
     options = Options()
-    options.headless = True
-    # driver = webdriver.Chrome(chrome_driver_path, options=options)
+    options.headless = headless_mode
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(website_link)
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
     print(driver.title)
 
-    # Timer
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
+    return driver
+
+def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
     # Proceed to Login page
-    online_booking_radio_button = driver.find_element(
-        by=By.ID, 
-        value="cpMain_btnLogin")
+    online_booking_radio_button = driver.find_element(by=By.ID, value="cpMain_btnLogin")
     online_booking_radio_button.click()
 
     # Log on using credentials
@@ -152,21 +145,12 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
             if allow_booking:
                 confirm_button.click()
                 logger.add_to_log(f"Success!")
-                pass
+                
 
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
-    # logger.add_to_log(f"Time taken to complete main - {timer() - start_time_main}s") 
-
-    # Close window if no available time is availabe
-    # driver.close()
-
-    # Close original window
-    # driver._switch_to.window(original_window)
-    # driver.close()
-
 def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path):
-    output_folder = log_output_path
+    output_folder = Path(log_output_path)
     logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
     logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
@@ -174,7 +158,15 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     logger.add_to_log(f"Current time is {datetime.now().strftime('%b %d %H:%M %S %f')}")
 
     start_time = timer()
-    main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
+    # Start up configuration of webdriver
+    webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
+    try:
+        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week)
+    except:
+        print("Issue here")
+        screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
+        webdriver.save_screenshot(str(screenshot_file_path))
+        
     time_taken_to_complete = timer() - start_time
     logger.add_to_log(f"Time taken to complete - {round(time_taken_to_complete, 2)}s") 
     
