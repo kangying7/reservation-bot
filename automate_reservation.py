@@ -122,7 +122,7 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         tee_time = tee_time_select.first_selected_option
     except NoSuchElementException as e:
         logger.add_to_log(f"There are no tee time options available!")
-        raise e
+        return
 
     # Retrieve date_time value from element value - 08:13 AM#@#10
     matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
