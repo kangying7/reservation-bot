@@ -45,8 +45,9 @@ def repeat_task_for_duration(run_time: int):
 
 
 if __name__ == "__main__":
-    # target_time: str = '2022-05-04 21:50:05'
-    target_time: str = '2022-05-04 21:59:45'
+    # target_time: str = '2022-05-11 21:29:45'
+
+    target_time: str = '2022-05-11 21:59:45'
     run_time: int = 30
 
     s = sched.scheduler(time.time, time.sleep)

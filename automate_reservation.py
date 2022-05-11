@@ -88,7 +88,12 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
     day_to_book = dayOnNextWeek(raw_day_of_the_week)
     # day_to_book = dayOnThisWeek(raw_day_of_the_week)
     logger.add_to_log(f"Making reservation for - {day_to_book}")
-    all_tee_off_date_select.select_by_value(day_to_book)
+    try:
+        all_tee_off_date_select.select_by_value(day_to_book)
+    except Exception as e:
+        logger.add_to_log(f"There are no available Tee Off Date for - {day_to_book}")
+        return
+        
 
     # TODO: Create a function which returns driver if there exists an available tee time matching our criteria
        
