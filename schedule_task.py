@@ -14,6 +14,7 @@ class RepeatedTimer(object):
         self.args = args
         self.kwargs = kwargs
         self.is_running = False
+        self.first_run = True
         self.start()
 
     def _run(self):
@@ -22,7 +23,12 @@ class RepeatedTimer(object):
         self.function(*self.args, **self.kwargs)
 
     def start(self):
-        if not self.is_running:
+        if self.first_run:
+            self._timer = Timer(0.5, self._run)
+            self._timer.start()
+            self.first_run = False
+
+        elif not self.is_running:
             self._timer = Timer(self.interval, self._run)
             self._timer.start()
             self.is_running = True
@@ -33,11 +39,11 @@ class RepeatedTimer(object):
 
 
 def run_all_schedule():
-    subprocess.run(f"python async_subprocess.py")
+    subprocess.run(f"python async_subprocess.py", shell=True)
 
 
-def repeat_task_for_duration(run_time: int):
-    rt = RepeatedTimer(1, run_all_schedule)
+def repeat_task_for_duration(run_time: int, interval: int):
+    rt = RepeatedTimer(interval, run_all_schedule)
     try:
         time.sleep(run_time)
     finally:
@@ -45,12 +51,14 @@ def repeat_task_for_duration(run_time: int):
 
 
 if __name__ == "__main__":
-    # target_time: str = '2022-04-27 20:46:05'
-    target_time: str = '2022-04-27 21:59:40'
-    run_time: int = 30
+    target_time: str = '2022-05-12 21:59:57'
+    # target_time: str = '2022-05-12 21:47:05'
+
+    run_time: int = 10
+    interval: int = 4
 
     s = sched.scheduler(time.time, time.sleep)
     abs_target_time = datetime.strptime(target_time, '%Y-%m-%d %H:%M:%S').timestamp()
 
-    s.enterabs(abs_target_time, 1, repeat_task_for_duration, argument=[run_time])
+    s.enterabs(abs_target_time, 1, repeat_task_for_duration, argument=[run_time, interval])
     s.run()

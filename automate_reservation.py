@@ -22,36 +22,30 @@ from timeit import default_timer as timer
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+import traceback
 
-def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
-    # Timer
-    # start_time_main = timer()
-
-    # Timer
+def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
-
-    # Launching reservation website
-    # chrome_driver_path = Path.cwd() / 'bin/chromedriver.exe'
-    website_link = "https://www.kotapermaionline.com.my/"
+    website_link = website_link
 
     options = Options()
-    options.headless = True
-    # driver = webdriver.Chrome(chrome_driver_path, options=options)
+    options.headless = headless_mode
+
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(website_link)
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
     print(driver.title)
 
-    # Timer
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
+    return driver
+
+def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
     # Proceed to Login page
-    online_booking_radio_button = driver.find_element(
-        by=By.ID, 
-        value="cpMain_btnLogin")
+    online_booking_radio_button = driver.find_element(by=By.ID, value="cpMain_btnLogin")
     online_booking_radio_button.click()
 
     # Log on using credentials
@@ -94,7 +88,12 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
     day_to_book = dayOnNextWeek(raw_day_of_the_week)
     # day_to_book = dayOnThisWeek(raw_day_of_the_week)
     logger.add_to_log(f"Making reservation for - {day_to_book}")
-    all_tee_off_date_select.select_by_value(day_to_book)
+    try:
+        all_tee_off_date_select.select_by_value(day_to_book)
+    except Exception as e:
+        logger.add_to_log(f"There are no available Tee Off Date for - {day_to_book}")
+        return
+        
 
     # TODO: Create a function which returns driver if there exists an available tee time matching our criteria
        
@@ -109,64 +108,78 @@ def main(raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_o
             EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
         ))
         session_select.select_by_value("Morning")
-    except NoSuchElementException as e:
+    except Exception as e:
         logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
+        raise e
 
     # Select only tee time where it is earlier than 7.30am
-    tee_time_select = Select(driver.find_element(by=By.ID, value="cpMain_cboTeeTime"))
-    for tee_time in tee_time_select.options:
-        # logger.add_to_log(f"Available tee time: {tee_time.get_attribute('text')}")
+    try:
+        tee_time_select = Select(WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "cpMain_cboTeeTime"))
+        ))
+    except Exception as e:
+        logger.add_to_log(f"No tee time select options could be found! - \n{e}")
+        raise e
 
-        # Retrieve date_time value from element value - 08:13 AM#@#10
-        matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
-        selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M").time()
-        target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M").time()
+    logger.add_to_log(f"All tee time options are: {[tee_time_options.get_attribute('value') for tee_time_options in tee_time_select.all_selected_options]}")
 
-        # Compare if selected tee time is earlier than target time
+    try:
+        tee_time = tee_time_select.first_selected_option
+    except NoSuchElementException as e:
+        logger.add_to_log(f"There are no tee time options available!")
+        return
 
-        is_available_tee_time: bool = selected_tee_time <= target_time
-        logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
+    # Retrieve date_time value from element value - 08:13 AM#@#10
+    matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
+    selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M").time()
+    target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M").time()
 
-        # Start booking
-        if is_available_tee_time:
-            next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
-            next_button.click()   
+    # Compare if selected tee time is earlier than target time
 
-            # Confirm booking page 
-            next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
-            next_button.click()   
+    is_available_tee_time: bool = selected_tee_time <= target_time
+    logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
 
-            # Confirm terms and condition
-            try:
-                tnc_checkbox = WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
-                )
-                logger.add_to_log(f"Found checkbox")
-            except NoSuchElementException as e:
-                logger.add_to_log(f"No checkbox are found!")
-            # tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
-            tnc_checkbox.click()   
+    if not is_available_tee_time:
+        logger.add_to_log(f"No suitable tee time is found, exiting...")
+        return
 
-            # Confirm booking button
-            confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
-            if allow_booking:
-                confirm_button.click()
-                logger.add_to_log(f"Success!")
-                pass
+    # Start booking
+    next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
+    next_button.click()   
 
+    # Confirm booking page 
+    next_button = driver.find_element(by=By.ID, value="cpMain_btnNext")
+    next_button.click()   
+
+    start_time_terms_condition_checkbox = timer()
+
+    # Confirm terms and condition
+    try:
+        tnc_checkbox = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
+        )
+        logger.add_to_log(f"Found checkbox")
+    except Exception as e:
+        logger.add_to_log(f"No checkbox are found!")
+        raise e
+    # tnc_checkbox = driver.find_element(by=By.ID, value="cpMain_chkTerm")
+    tnc_checkbox.click()   
+
+    logger.add_to_log(f"Time taken to tick terms and conditions checkbox - {timer() - start_time_terms_condition_checkbox}s") 
+
+    # Confirm booking button
+    confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
+    if allow_booking:
+        start_time_confirm_button_clicked = timer()
+        logger.add_to_log(f"Current time before clicking confirm button is {datetime.now().strftime('%b %d %H:%M %S %f')}")
+        confirm_button.click()
+        logger.add_to_log(f"Time taken to for confirm button to complete - {timer() - start_time_confirm_button_clicked}s") 
+        logger.add_to_log(f"Success!")
+                    
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
-    # logger.add_to_log(f"Time taken to complete main - {timer() - start_time_main}s") 
-
-    # Close window if no available time is availabe
-    # driver.close()
-
-    # Close original window
-    # driver._switch_to.window(original_window)
-    # driver.close()
-
 def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path):
-    output_folder = log_output_path
+    output_folder = Path(log_output_path)
     logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
     logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
@@ -174,8 +187,17 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     logger.add_to_log(f"Current time is {datetime.now().strftime('%b %d %H:%M %S %f')}")
 
     start_time = timer()
-    main(raw_target_time, allow_booking, logger, raw_day_of_the_week)
+    # Start up configuration of webdriver
+    webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
+    try:
+        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week)
+    except Exception as e:
+        traceback.print_exc()
+        screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
+        webdriver.save_screenshot(str(screenshot_file_path))
+        
     time_taken_to_complete = timer() - start_time
+    logger.add_to_log(f"Current time after ending program is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     logger.add_to_log(f"Time taken to complete - {round(time_taken_to_complete, 2)}s") 
     
 
