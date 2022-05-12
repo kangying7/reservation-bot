@@ -171,6 +171,7 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
     confirm_button = driver.find_element(by=By.ID, value="cpMain_btnSave")
     if allow_booking:
         start_time_confirm_button_clicked = timer()
+        logger.add_to_log(f"Current time before clicking confirm button is {datetime.now().strftime('%b %d %H:%M %S %f')}")
         confirm_button.click()
         logger.add_to_log(f"Time taken to for confirm button to complete - {timer() - start_time_confirm_button_clicked}s") 
         logger.add_to_log(f"Success!")
