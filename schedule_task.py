@@ -1,3 +1,4 @@
+from configparser import ConfigParser
 import subprocess
 import threading
 from datetime import datetime
@@ -51,11 +52,20 @@ def repeat_task_for_duration(run_time: int, interval: int):
 
 
 if __name__ == "__main__":
-    target_time: str = '2022-05-12 21:59:57'
-    # target_time: str = '2022-05-12 21:47:05'
+    # Get scheduler details from config file
+    config = ConfigParser()
+    config.read("etc/config.txt")
+    scheduler = config['scheduler']
+    target_time = scheduler.get('scheduled_time')
+    run_time = int(scheduler.get('schedule_duration'))
+    interval = int(scheduler.get('schedule_interval'))
 
-    run_time: int = 10
-    interval: int = 4
+
+    # target_time: str = '2022-05-12 21:59:57'
+    # # target_time: str = '2022-05-12 21:47:05'
+
+    # run_time: int = 10
+    # interval: int = 4
 
     s = sched.scheduler(time.time, time.sleep)
     abs_target_time = datetime.strptime(target_time, '%Y-%m-%d %H:%M:%S').timestamp()

@@ -40,7 +40,7 @@ def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
     return driver
 
-def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week):
+def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week, username, password):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
@@ -49,12 +49,6 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
     online_booking_radio_button.click()
 
     # Log on using credentials
-    config = ConfigParser()
-    config.read("etc/config.txt")
-    credentials = config['credentials']
-    username = credentials.get('username')
-    password = credentials.get('password')
-
     membership_no_input = driver.find_element(by=By.ID, value="cpMain_txtUserName")
     membership_no_input.send_keys(username)
     password_input = driver.find_element(by=By.ID, value="cpMain_txtPassword")
@@ -178,7 +172,7 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
                     
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
-def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path):
+def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path, username, password):
     output_folder = Path(log_output_path)
     logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
@@ -190,7 +184,7 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     # Start up configuration of webdriver
     webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
     try:
-        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week)
+        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week, username, password)
     except Exception as e:
         traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
@@ -217,7 +211,14 @@ if __name__ == "__main__":
     raw_day_of_the_week = int(args.day)
     print(allow_booking, raw_target_time, raw_day_of_the_week)
 
-    driver_program(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path)
+    # Get credentials from config file
+    config = ConfigParser()
+    config.read("etc/config.txt")
+    credentials = config['credentials']
+    username = credentials.get('username')
+    password = credentials.get('password')
+
+    driver_program(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path, username, password)
 
 
 
