@@ -1,5 +1,5 @@
 myenv
 bin/
-etc/
 output/
 __pycache__/
+etc/
