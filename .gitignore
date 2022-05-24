@@ -2,3 +2,4 @@ myenv
 bin/
 output/
 __pycache__/
+etc/
