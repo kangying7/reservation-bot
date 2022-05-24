@@ -115,7 +115,7 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         logger.add_to_log(f"No tee time select options could be found! - \n{e}")
         raise e
 
-    logger.add_to_log(f"All tee time options are: {[tee_time_options.get_attribute('value') for tee_time_options in tee_time_select.all_selected_options]}")
+    logger.add_to_log(f"All tee time options are: {[tee_time_options.get_attribute('value') for tee_time_options in tee_time_select.options]}")
 
     try:
         tee_time = tee_time_select.first_selected_option
