@@ -1,5 +1,5 @@
 import asyncio
-from calendar import FRIDAY, MONDAY, THURSDAY, TUESDAY, WEDNESDAY
+from calendar import FRIDAY, MONDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY
 from lib.custom_logger import CustomLogger
 from pathlib import Path
 import datetime
@@ -22,7 +22,8 @@ async def run(cmd, logger: CustomLogger):
 async def main():
     # logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
 
-    time = "7:30"
+    # time = "7:30"
+    time = '"1:15 PM"'
     # Create output folder if it does not exist
     log_output_path = Path.cwd() / 'output'
     Path(log_output_path).mkdir(parents=True, exist_ok=True)
@@ -33,8 +34,8 @@ async def main():
     session_logger = CustomLogger(session_log_path, "session_details.log")
     start_time = datetime.datetime.now()
    
-    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [FRIDAY]]
+    # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
+    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [SUNDAY]]
     
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()

@@ -24,6 +24,16 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import traceback
 
+def save_screenshot_fullscreen(driver: webdriver.Chrome, path: str) -> None:
+    # Ref: https://stackoverflow.com/a/52572919/
+    original_size = driver.get_window_size()
+    required_width = driver.execute_script('return document.body.parentNode.scrollWidth')
+    required_height = driver.execute_script('return document.body.parentNode.scrollHeight')
+    driver.set_window_size(required_width, required_height)
+    # driver.save_screenshot(path)  # has scrollbar
+    driver.find_element_by_tag_name('body').screenshot(path)  # avoids scrollbar
+    driver.set_window_size(original_size['width'], original_size['height'])
+
 def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
     website_link = website_link
@@ -40,7 +50,7 @@ def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
     return driver
 
-def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week, username, password):
+def main(driver: webdriver.Chrome, raw_target_time:str, allow_booking:bool, logger:CustomLogger, day_to_book, username, password, output_folder):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
@@ -79,9 +89,6 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
     all_tee_off_date_select = Select(driver.find_element(by=By.ID, value="cpMain_cboDate"))
 
     # Select date for reservation
-    day_to_book = dayOnNextWeek(raw_day_of_the_week)
-    # day_to_book = dayOnThisWeek(raw_day_of_the_week)
-    logger.add_to_log(f"Making reservation for - {day_to_book}")
     try:
         all_tee_off_date_select.select_by_value(day_to_book)
     except Exception as e:
@@ -101,7 +108,8 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         session_select = Select(WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
         ))
-        session_select.select_by_value("Morning")
+        # session_select.select_by_value("Morning")
+        session_select.select_by_value("Afternoon")
     except Exception as e:
         logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
         raise e
@@ -124,12 +132,11 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         return
 
     # Retrieve date_time value from element value - 08:13 AM#@#10
-    matched_date_time = re.match(r"(\d+:\d+)\s", tee_time.get_attribute('value'))[1]
-    selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M").time()
-    target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M").time()
+    matched_date_time = re.match(r"(?:\d+:\d+)\s(?:AM|PM)", tee_time.get_attribute('value')).group()
+    selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M %p").time()
+    target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M %p").time()
 
     # Compare if selected tee time is earlier than target time
-
     is_available_tee_time: bool = selected_tee_time <= target_time
     logger.add_to_log(f"Selected tee time: {selected_tee_time} is earlier than target_time: {target_time} - {is_available_tee_time}")
 
@@ -148,6 +155,7 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
     start_time_terms_condition_checkbox = timer()
 
     # Confirm terms and condition
+    driver.maximize_window()
     try:
         tnc_checkbox = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "cpMain_chkTerm"))
@@ -169,14 +177,16 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         confirm_button.click()
         logger.add_to_log(f"Time taken to for confirm button to complete - {timer() - start_time_confirm_button_clicked}s") 
         logger.add_to_log(f"Success!")
+        screenshot_file_path = output_folder /  f"success-{day_name[raw_day_of_the_week]}.png"
+        save_screenshot_fullscreen(driver, str(screenshot_file_path))
                     
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
-def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_output_path: Path, username, password):
+def driver_program(raw_target_time:str, raw_day_of_the_week, day_to_book, allow_booking, log_output_path: Path, username, password):
     output_folder = Path(log_output_path)
     logger = CustomLogger(output_folder, f"{day_name[raw_day_of_the_week]}.log")
     logger.add_to_log("================================")
-    logger.add_to_log(f"{day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
+    logger.add_to_log(f"{day_to_book} {day_name[raw_day_of_the_week]} {raw_target_time} {allow_booking}")
     logger.add_to_log("================================")
     logger.add_to_log(f"Current time is {datetime.now().strftime('%b %d %H:%M %S %f')}")
 
@@ -184,7 +194,7 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     # Start up configuration of webdriver
     webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
     try:
-        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week, username, password)
+        main(webdriver, raw_target_time, allow_booking, logger, day_to_book, username, password, output_folder)
     except Exception as e:
         traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
@@ -218,7 +228,10 @@ if __name__ == "__main__":
     username = credentials.get('username')
     password = credentials.get('password')
 
-    driver_program(raw_target_time, raw_day_of_the_week, allow_booking, log_output_path, username, password)
+    day_to_book = dayOnNextWeek(raw_day_of_the_week)
+    # day_to_book = dayOnThisWeek(raw_day_of_the_week)
+
+    driver_program(raw_target_time, raw_day_of_the_week, day_to_book, allow_booking, log_output_path, username, password)
 
 
 
