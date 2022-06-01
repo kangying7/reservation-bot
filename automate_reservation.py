@@ -24,6 +24,16 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import traceback
 
+def save_screenshot_fullscreen(driver: webdriver.Chrome, path: str) -> None:
+    # Ref: https://stackoverflow.com/a/52572919/
+    original_size = driver.get_window_size()
+    required_width = driver.execute_script('return document.body.parentNode.scrollWidth')
+    required_height = driver.execute_script('return document.body.parentNode.scrollHeight')
+    driver.set_window_size(required_width, required_height)
+    # driver.save_screenshot(path)  # has scrollbar
+    driver.find_element_by_tag_name('body').screenshot(path)  # avoids scrollbar
+    driver.set_window_size(original_size['width'], original_size['height'])
+
 def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
     website_link = website_link
@@ -40,7 +50,7 @@ def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
     return driver
 
-def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week, username, password):
+def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, raw_day_of_the_week, username, password, output_folder):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
@@ -169,6 +179,8 @@ def main(driver, raw_target_time:str, allow_booking:bool, logger:CustomLogger, r
         confirm_button.click()
         logger.add_to_log(f"Time taken to for confirm button to complete - {timer() - start_time_confirm_button_clicked}s") 
         logger.add_to_log(f"Success!")
+        screenshot_file_path = output_folder /  f"success_{day_name[raw_day_of_the_week]}.png"
+        save_screenshot_fullscreen(driver, str(screenshot_file_path))
                     
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
@@ -184,11 +196,11 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, allow_booking, log_
     # Start up configuration of webdriver
     webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
     try:
-        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week, username, password)
+        main(webdriver, raw_target_time, allow_booking, logger, raw_day_of_the_week, username, password, output_folder)
     except Exception as e:
         traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
-        webdriver.save_screenshot(str(screenshot_file_path))
+        save_screenshot_fullscreen(webdriver, str(screenshot_file_path))
         
     time_taken_to_complete = timer() - start_time
     logger.add_to_log(f"Current time after ending program is {datetime.now().strftime('%b %d %H:%M %S %f')}")
