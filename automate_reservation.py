@@ -133,8 +133,8 @@ def main(driver: webdriver.Chrome, raw_target_time:str, allow_booking:bool, logg
 
     # Retrieve date_time value from element value - 08:13 AM#@#10
     matched_date_time = re.match(r"(?:\d+:\d+)\s(?:AM|PM)", tee_time.get_attribute('value')).group()
-    selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%H:%M %p").time()
-    target_time: datetime.time = datetime.strptime(raw_target_time, "%H:%M %p").time()
+    selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%I:%M %p").time()
+    target_time: datetime.time = datetime.strptime(raw_target_time, "%I:%M %p").time()
 
     # Compare if selected tee time is earlier than target time
     is_available_tee_time: bool = selected_tee_time <= target_time
