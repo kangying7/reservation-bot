@@ -1,5 +1,6 @@
 import asyncio
-from calendar import FRIDAY, MONDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY
+from calendar import FRIDAY, MONDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY, day_name, day_abbr
+from configparser import ConfigParser
 from lib.custom_logger import CustomLogger
 from pathlib import Path
 import datetime
@@ -21,9 +22,25 @@ async def run(cmd, logger: CustomLogger):
 
 async def main():
     # logger = CustomLogger(f"{day_name[raw_day_of_the_week]}.log")
-
-    # time = "7:30"
-    time = '"1:15 PM"'
+    config = ConfigParser()
+    config.read("etc/config.txt")
+    single_run = config['single_run']
+    time = single_run.get('before_time_slot')
+    days_to_book = single_run.get('days_to_book')
+    
+    print("Before time slot - ", time)
+    print("Days to book are - ", days_to_book)
+    
+    # Guard for days to book
+    days_to_book_list = []
+    try:
+        for day in days_to_book.split(","):
+            parsed_day = int(day.strip())
+            days_to_book_list.append(parsed_day)
+    except Exception as e:
+        print(f"Error in config file: days_to_book parameter should be between 1-7 (Monday to Sunday), separated by comma. Error is: {e}")
+        return
+        
     # Create output folder if it does not exist
     log_output_path = Path.cwd() / 'output'
     Path(log_output_path).mkdir(parents=True, exist_ok=True)
@@ -35,7 +52,7 @@ async def main():
     start_time = datetime.datetime.now()
    
     # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [SUNDAY]]
+    coros = [run(f'python ./automate_reservation.py --time "{time}" --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in days_to_book_list]
     
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()
