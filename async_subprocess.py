@@ -27,6 +27,8 @@ async def main():
     single_run = config['single_run']
     time = single_run.get('before_time_slot')
     days_to_book = single_run.get('days_to_book')
+    session = single_run.get('session')
+    booking = single_run.getboolean('booking')
     
     print("Before time slot - ", time)
     print("Days to book are - ", days_to_book)
@@ -52,7 +54,8 @@ async def main():
     start_time = datetime.datetime.now()
    
     # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    coros = [run(f'python ./automate_reservation.py --time "{time}" --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in days_to_book_list]
+    coros = [run(f'python ./automate_reservation.py --time "{time}" --log "{session_log_path}" --day {weekday} --session {session} {"--booking" if booking else ""}', \
+        session_logger) for weekday in days_to_book_list]
     
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()
