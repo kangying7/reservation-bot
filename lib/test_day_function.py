@@ -7,6 +7,9 @@ onDay = lambda date, day: date + datetime.timedelta(days=(day-date.weekday())%7)
 def dayOnNextWeek(target_day: datetime.datetime.day):
     today = datetime.datetime.today()
     diff_in_days_to_next_monday = datetime.timedelta(days=(MONDAY-today.weekday())%7)
+    # Add a week if current day is already a Monday
+    if diff_in_days_to_next_monday <= datetime.timedelta(days=0):
+        diff_in_days_to_next_monday += datetime.timedelta(days=+7)
     # print("Difference in days are", diff_in_days)
     next_monday_date = today + diff_in_days_to_next_monday
 
