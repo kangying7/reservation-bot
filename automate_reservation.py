@@ -108,8 +108,6 @@ def main(driver: webdriver.Chrome, raw_target_time:str, session:str, allow_booki
         session_select = Select(WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "cpMain_cboSession"))
         ))
-        # session_select.select_by_value("Morning")
-        # session_select.select_by_value("Afternoon")
         session_select.select_by_value(session)
     except Exception as e:
         logger.add_to_log(f"No morning sessions are found for {selected_tee_off_date} -  \n{e}")
@@ -124,7 +122,36 @@ def main(driver: webdriver.Chrome, raw_target_time:str, session:str, allow_booki
         logger.add_to_log(f"No tee time select options could be found! - \n{e}")
         raise e
 
-    logger.add_to_log(f"All tee time options are: {[tee_time_options.get_attribute('value') for tee_time_options in tee_time_select.options]}")
+    all_tee_time_options_value = [tee_time_options.get_attribute('value') for tee_time_options in tee_time_select.options]
+    logger.add_to_log(f"All tee time options are: {all_tee_time_options_value}")
+    
+    before_time_list = []
+    before_time = "11:00 AM"
+    for tee_time_options_value in all_tee_time_options_value:
+         # Retrieve date_time value from element value - 08:13 AM#@#10
+        matched_date_time = re.match(r"(?:\d+:\d+)\s(?:AM|PM)", tee_time_options_value).group()
+        selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%I:%M %p").time()
+        target_time: datetime.time = datetime.strptime(before_time, "%I:%M %p").time()
+        is_available_tee_time: bool = selected_tee_time <= target_time
+        if is_available_tee_time:
+            before_time_list.append(tee_time_options_value)
+    
+    after_time_list = []
+    after_time = "9:08 AM"
+    for tee_time_options_value in all_tee_time_options_value:
+         # Retrieve date_time value from element value - 08:13 AM#@#10
+        matched_date_time = re.match(r"(?:\d+:\d+)\s(?:AM|PM)", tee_time_options_value).group()
+        selected_tee_time: datetime.time = datetime.strptime(matched_date_time, "%I:%M %p").time()
+        target_time: datetime.time = datetime.strptime(after_time, "%I:%M %p").time()
+        is_available_tee_time: bool = selected_tee_time > target_time
+        if is_available_tee_time:
+            after_time_list.append(tee_time_options_value)
+
+    logger.add_to_log(f"All tee time options after {after_time}: {after_time_list}")
+    logger.add_to_log(f"All tee time options before {before_time}: {before_time_list}")
+
+
+    return
 
     try:
         tee_time = tee_time_select.first_selected_option
@@ -231,8 +258,8 @@ if __name__ == "__main__":
     username = credentials.get('username')
     password = credentials.get('password')
 
-    day_to_book = dayOnNextWeek(raw_day_of_the_week)
-    # day_to_book = dayOnThisWeek(raw_day_of_the_week)
+    # day_to_book = dayOnNextWeek(raw_day_of_the_week)
+    day_to_book = dayOnThisWeek(raw_day_of_the_week)
 
     driver_program(raw_target_time, raw_day_of_the_week, day_to_book, session, allow_booking, log_output_path, username, password)
 
