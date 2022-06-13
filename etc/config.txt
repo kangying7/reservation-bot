@@ -6,3 +6,9 @@ password =
 scheduled_time = 2022-05-18 21:09:05
 schedule_duration = 10
 schedule_interval = 4
+
+[single_run]
+before_time_slot = 1:15 PM
+days_to_book = 3,4
+session = Afternoon
+booking = True
