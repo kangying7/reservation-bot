@@ -14,10 +14,18 @@ Refer to https://docs.python.org/3/library/venv.html.
 python -m pip install -r requirements.txt
 ```
 
-## 4. Set up credentials
+## 4. Set up configurations
 Update username and password field in the etc/config.txt file
 
 ## 5. Start script
 ```console
 python .\schedule_task.py
+```
+
+# To build executable using PyInstaller
+## 1. Install pyinstaller
+
+## 2. Create one-folder executable by running follow command with added data.
+```console
+pyinstaller .\schedule_task.py --add-data ".\etc\config.txt;.\etc" --add-data ".\automate_reservation.py;." --add-data ".\lib\;.\lib" --add-data ".\async_subprocess.py;."
 ```
