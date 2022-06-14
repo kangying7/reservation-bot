@@ -54,6 +54,7 @@ async def main():
         
     # Create session_details file for logging purposes
     session_logger = CustomLogger(session_log_path, "session_details.log")
+    session_logger.add_to_log("TEST HIHIHI FROM ASYNC")
     start_time = datetime.datetime.now()
    
     # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]

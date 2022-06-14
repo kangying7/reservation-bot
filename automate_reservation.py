@@ -229,8 +229,8 @@ if __name__ == "__main__":
     username = credentials.get('username')
     password = credentials.get('password')
 
-    day_to_book = dayOnNextWeek(raw_day_of_the_week)
-    # day_to_book = dayOnThisWeek(raw_day_of_the_week)
+    # day_to_book = dayOnNextWeek(raw_day_of_the_week)
+    day_to_book = dayOnThisWeek(raw_day_of_the_week)
 
     driver_program(raw_target_time, raw_day_of_the_week, day_to_book, session, allow_booking, log_output_path, username, password)
 
