@@ -7,6 +7,7 @@ from pathlib import Path
 import datetime
 from timeit import default_timer as timer
 
+
 async def run(cmd, logger: CustomLogger):
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -20,6 +21,7 @@ async def run(cmd, logger: CustomLogger):
         logger.add_to_log(f'[stdout]\n{stdout.decode()}')
     if stderr:
         logger.add_to_log(f'[stderr]\n{stderr.decode()}')
+
 
 async def main():
     # Create output folder if it does not exist
@@ -37,11 +39,12 @@ async def main():
     config = ConfigParser()
     config.read(config_session_file)
     single_run = config['single_run']
-    time = single_run.get('before_time_slot')
+    reservation_start_time_range = single_run.get('start_time_range')
+    reservation_end_time_range = single_run.get('end_time_range')
     days_to_book = single_run.get('days_to_book')
     session = single_run.get('session')
     booking = single_run.getboolean('booking')
-        
+
     # Guard for days to book
     days_to_book_list = []
     try:
@@ -51,15 +54,16 @@ async def main():
     except Exception as e:
         print(f"Error in config file: days_to_book parameter should be between 0-6 (Monday to Sunday), separated by comma. Error is: {e}")
         return
-        
+
     # Create session_details file for logging purposes
     session_logger = CustomLogger(session_log_path, "session_details.log")
     start_time = datetime.datetime.now()
-   
+
     # coros = [run(f'python ./automate_reservation.py --time {time} --log "{session_log_path}" --day {weekday} --booking', session_logger) for weekday in [TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]]
-    coros = [run(f'python ./automate_reservation.py --time "{time}" --log "{session_log_path}" --day {weekday} --session {session} {"--booking" if booking else ""}', \
-        session_logger) for weekday in days_to_book_list]
-    
+    coros = [run(f'python ./automate_reservation.py --start-time "{reservation_start_time_range}" --end-time "{reservation_end_time_range}" \
+        --log "{session_log_path}" --day {weekday} --session {session} {"--booking" if booking else ""}',
+                 session_logger) for weekday in days_to_book_list]
+
     await asyncio.gather(*coros)
     end_time = datetime.datetime.now()
     time_taken_to_complete = end_time - start_time
