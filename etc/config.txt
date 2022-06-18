@@ -8,5 +8,11 @@ schedule_duration = 10
 schedule_interval = 4
 
 [single_run]
-before_time_slot = 7:30 PM
-days_to_book = 4
+# HH:MM AM/PM
+before_time_slot = 1:15 PM
+# Ranging from 0-6 (Monday-Sunday)
+days_to_book = 3,4
+# Morning, Afternoon
+session = Afternoon
+# Set to True for submitting booking, False is for testing purposes
+booking = True

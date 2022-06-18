@@ -50,7 +50,7 @@ def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     logger.add_to_log(f"Time taken to start chrome - {timer() - start_time_chrome}s") 
     return driver
 
-def main(driver: webdriver.Chrome, raw_target_time:str, session:str, allow_booking:bool, logger:CustomLogger, day_to_book, username, password, output_folder):
+def main(driver: webdriver.Chrome, raw_target_time:str, session:str, allow_booking:bool, logger:CustomLogger, day_to_book, username, password, output_folder, raw_day_of_the_week):
     logger.add_to_log(f"Current time after starting chrome is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     start_time_login_page = timer()
 
@@ -206,7 +206,7 @@ def main(driver: webdriver.Chrome, raw_target_time:str, session:str, allow_booki
         logger.add_to_log(f"Time taken to for confirm button to complete - {timer() - start_time_confirm_button_clicked}s") 
         logger.add_to_log(f"Success!")
         screenshot_file_path = output_folder /  f"success-{day_name[raw_day_of_the_week]}.png"
-        save_screenshot_fullscreen(driver, str(screenshot_file_path))
+    save_screenshot_fullscreen(driver, str(screenshot_file_path))
                     
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
@@ -222,11 +222,11 @@ def driver_program(raw_target_time:str, raw_day_of_the_week, day_to_book, sessio
     # Start up configuration of webdriver
     webdriver = start_up("https://www.kotapermaionline.com.my/", True, logger)
     try:
-        main(webdriver, raw_target_time, session, allow_booking, logger, day_to_book, username, password, output_folder)
+        main(webdriver, raw_target_time, session, allow_booking, logger, day_to_book, username, password, output_folder, raw_day_of_the_week)
     except Exception as e:
         traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
-        webdriver.save_screenshot(str(screenshot_file_path))
+        save_screenshot_fullscreen(webdriver, str(screenshot_file_path))
         
     time_taken_to_complete = timer() - start_time
     logger.add_to_log(f"Current time after ending program is {datetime.now().strftime('%b %d %H:%M %S %f')}")
