@@ -32,6 +32,10 @@ def save_screenshot_fullscreen(driver: webdriver.Chrome, path: str) -> None:
     driver.find_element_by_tag_name('body').screenshot(path)  # avoids scrollbar
     driver.set_window_size(original_size['width'], original_size['height'])
 
+def save_html_fullscreen(driver: webdriver.Chrome, path: str) -> None:
+    with open(path, 'w') as file:
+        file.write(driver.page_source)
+
 def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
     website_link = website_link
@@ -199,7 +203,9 @@ def main(driver: webdriver.Chrome, start_time_range:str, end_time_range:str, ses
         logger.add_to_log(f"Success!")
         screenshot_file_path = output_folder /  f"success-{day_name[raw_day_of_the_week]}.png"
     save_screenshot_fullscreen(driver, str(screenshot_file_path))
-                    
+    
+    html_file_path = output_folder /  f"success-{day_name[raw_day_of_the_week]}.html"
+    save_html_fullscreen(driver, html_file_path)
     logger.add_to_log(f"Time taken to complete booking window - {timer() - start_time_booking_window}s") 
 
 def driver_program(start_time_range:str, end_time_range:str, raw_day_of_the_week, day_to_book, session, allow_booking, log_output_path: Path, username, password):
@@ -219,7 +225,7 @@ def driver_program(start_time_range:str, end_time_range:str, raw_day_of_the_week
         traceback.print_exc()
         screenshot_file_path = output_folder /  f"{day_name[raw_day_of_the_week]}.png"
         save_screenshot_fullscreen(webdriver, str(screenshot_file_path))
-        
+    
     time_taken_to_complete = timer() - start_time
     logger.add_to_log(f"Current time after ending program is {datetime.now().strftime('%b %d %H:%M %S %f')}")
     logger.add_to_log(f"Time taken to complete - {round(time_taken_to_complete, 2)}s") 
