@@ -40,10 +40,11 @@ def start_up(website_link:str, headless_mode:bool, logger:CustomLogger):
     start_time_chrome = timer()
     website_link = website_link
 
-    options = Options()
-    options.headless = headless_mode
+    service = Service()
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless=new")
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver = webdriver.Chrome(service=service, options=options)
     driver.get(website_link)
 
     assert "Welcome to Kota Permai Golf and Country Club" in driver.title
