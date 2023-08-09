@@ -1,4 +1,4 @@
-myenv
+venv
 output/
 __pycache__/
 etc/
